@@ -7,6 +7,66 @@ import (
 	"github.com/gen2brain/raylib-go/raylib"
 )
 
+/*
+ * Board consists of Cells
+ * Blocks define figures, but there's also an active block.
+ * This can be the actual figure, just reset it afterwards.
+ * Once a block is fixed, it becomes fixed lines on the board
+ * full lines are marked as full which allows animation of their
+ * removal
+ */
+
+// Cell in the board
+type Cell struct {
+	used bool
+	// should probably be color, possibly connectleft, connecttop
+}
+
+func (c *Cell) print() {
+	if c.used {
+		fmt.Print("X")
+	} else {
+		fmt.Print(" ")
+	}
+}
+
+// Game of cells
+type Game struct {
+	rows  int
+	cols  int
+	board [][]*Cell
+}
+
+func (g *Game) init(rows int, cols int) {
+	g.rows = rows
+	g.cols = cols
+
+	g.board = make([][]*Cell, rows) // rows + 1?
+
+	for i := 0; i < len(g.board); i++ {
+		g.board[i] = make([]*Cell, cols) // cols + 1?
+		for j := 0; j < cols; j++ {
+			g.board[i][j] = &Cell{}
+		}
+	}
+}
+
+func (g *Game) print() {
+	for i := 0; i < len(g.board); i++ {
+		for j := 0; j < len(g.board[i]); j++ {
+			g.board[i][j].print()
+		}
+		fmt.Println()
+	}
+}
+
+func (g *Game) putSomeBlocks() {
+	g.board[1][1].used = true
+	g.board[1][2].used = true
+	g.board[2][1].used = true
+	g.board[2][2].used = true
+}
+
 var block = []string{
 	"XX",
 	"XX",
@@ -19,45 +79,20 @@ func drawBlock(x int, y int) {
 	raylib.DrawRectangle(int32(x), int32(y), 20, 20, raylib.Blue)
 }
 
-func initBoard(rows int, cols int) [][]string {
-	board := make([][]string, rows)
-
-	for i := 0; i < len(board); i++ {
-		board[i] = make([]string, cols)
-	}
-
-	return board
-}
-
-func printBoard(board [][]string) {
-	for i := 0; i < len(board); i++ {
-		for j := 0; j < len(board[i]); j++ {
-			fmt.Print(board[i][j])
-		}
-		fmt.Println()
-	}
-}
-
-func putSomeBlocks(board [][]string) {
-	board[1][1] = "X"
-	board[1][2] = "X"
-	board[2][1] = "X"
-	board[2][2] = "X"
-}
-
 func main() {
 	raylib.InitWindow(450, 800, "Ivo's GO Tetris")
 
-	raylib.SetTargetFPS(6)
+	raylib.SetTargetFPS(1)
 	fmt.Println("My favorite number is", rand.Intn(10))
 
 	const cols = 10
 	const rows = 20
 
-	board := initBoard(rows, cols)
+	board := Game{}
+	board.init(rows, cols)
 
-	putSomeBlocks(board)
-	printBoard(board)
+	board.putSomeBlocks()
+	board.print()
 
 	for !raylib.WindowShouldClose() {
 		// fmt.Printf("loop..")
