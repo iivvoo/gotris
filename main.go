@@ -95,11 +95,15 @@ func (g *Game) putBlock(block *ActiveBlock) {
 	g.insertBlock()
 }
 
-func (g *Game) insertBlock() {
+func (g *Game) canMoveBlock(dRow int, dCol int) bool {
+	return true
+
 	// insert the active block. May fail, handle that later
 	// TODO: rotat
 	var a = g.active
 	var b = a.block
+
+	fmt.Printf("%d %d", a.row, a.col)
 
 	for r := 0; r < len(b.cells); r++ {
 		for c := 0; c < len(b.cells[r]); c++ {
@@ -109,6 +113,33 @@ func (g *Game) insertBlock() {
 			}
 		}
 	}
+	return false
+}
+
+func (g *Game) setBlock(state bool) {
+	// insert the active block. May fail, handle that later
+	// TODO: rotat
+	var a = g.active
+	var b = a.block
+
+	fmt.Printf("%d %d", a.row, a.col)
+
+	for r := 0; r < len(b.cells); r++ {
+		for c := 0; c < len(b.cells[r]); c++ {
+			if b.cells[r][c] == 'X' {
+				// only if not already set, else block cannot be placed
+				g.board[a.row+r][a.col+c].used = state
+			}
+		}
+	}
+}
+
+func (g *Game) insertBlock() {
+	g.setBlock(true)
+}
+
+func (g *Game) clearBlock() {
+	g.setBlock(false)
 }
 
 func (g *Game) putSomeBlocks() {
@@ -118,16 +149,45 @@ func (g *Game) putSomeBlocks() {
 	g.board[11][2].used = true
 }
 
+func (g *Game) input() {
+	var active = g.active
+	var dCol, dRow = 0, 0
+
+	if raylib.IsKeyDown(raylib.KeyRight) {
+		fmt.Println("Right")
+		dCol = 1
+	}
+	if raylib.IsKeyDown(raylib.KeyLeft) {
+		fmt.Println("Left")
+		dCol = -1
+	}
+	if raylib.IsKeyDown(raylib.KeyUp) {
+		fmt.Println("Up")
+		dRow = -1
+	}
+	if raylib.IsKeyDown(raylib.KeyDown) {
+		fmt.Println("Down")
+		dRow = 1
+	}
+	if g.canMoveBlock(dRow, dCol) {
+		g.clearBlock()
+		active.row += dRow
+		active.col += dCol
+		g.insertBlock()
+
+	}
+}
 func (g *Game) draw() {
 	// Draw a single block. Needs color
-	defer fmt.Println("Block drawn")
+	// defer fmt.Println("Block drawn")
 
 	for row := 0; row < len(g.board); row++ {
 		for col := 0; col < len(g.board[row]); col++ {
 			if g.board[row][col].used {
 				raylib.DrawRectangle(int32(col*20), int32(row*20), 20, 20, raylib.Blue)
+			} else {
+				raylib.DrawRectangle(int32(col*20), int32(row*20), 20, 20, raylib.White)
 			}
-			// else clear?
 		}
 	}
 }
@@ -135,7 +195,7 @@ func (g *Game) draw() {
 func main() {
 	raylib.InitWindow(450, 800, "Ivo's GO Tetris")
 
-	raylib.SetTargetFPS(1)
+	raylib.SetTargetFPS(6)
 	fmt.Println("My favorite number is", rand.Intn(10))
 
 	const cols = 8
@@ -157,10 +217,11 @@ func main() {
 
 		raylib.ClearBackground(raylib.RayWhite)
 
-		raylib.DrawText("Congrats! You created your first window!", 10, 200, 20, raylib.LightGray)
+		// raylib.DrawText("Congrats! You created your first window!", 10, 200, 20, raylib.LightGray)
 
 		// drawBlock(rand.Intn(20), rand.Intn(20))
 		board.draw()
+		board.input()
 		raylib.EndDrawing()
 	}
 
