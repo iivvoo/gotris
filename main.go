@@ -21,11 +21,6 @@ import (
  * Game kunnen hangen
  */
 
-var block = []string{
-	"XX",
-	"XX",
-}
-
 // Block is a possible tetris figure
 type Block struct {
 	cells []string
@@ -66,6 +61,9 @@ func (c *Cell) print() {
 
 // Game of cells
 type Game struct {
+	fps           int
+	linesPs       int
+	keysPs        int
 	rows          int
 	cols          int
 	framesCounter int
@@ -74,11 +72,14 @@ type Game struct {
 	board         [][]*Cell
 }
 
-func (g *Game) init(rows int, cols int) {
+func (g *Game) init(rows int, cols int, fps int, linesPs int, keysPs int) {
 	g.framesCounter = 0
 	g.allowMove = true
 	g.rows = rows
 	g.cols = cols
+	g.fps = fps
+	g.linesPs = linesPs
+	g.keysPs = keysPs
 
 	g.board = make([][]*Cell, rows) // rows + 1?
 
@@ -154,15 +155,15 @@ func (g *Game) hideBlock() {
 }
 
 func (g *Game) putSomeBlocks() {
-	g.board[18][1].used = true
-	g.board[18][2].used = true
-	g.board[19][1].used = true
-	g.board[19][2].used = true
+	g.board[g.rows-2][1].used = true
+	g.board[g.rows-2][2].used = true
+	g.board[g.rows-1][1].used = true
+	g.board[g.rows-1][2].used = true
 }
 
 func (g *Game) blockDown() bool {
 	// move active block down 1 row every N frames
-	if g.framesCounter%60 == 0 {
+	if g.framesCounter%(g.fps/g.linesPs) == 0 {
 		if g.canMoveBlock(1, 0) {
 			g.hideBlock()
 			g.active.row++
@@ -181,7 +182,7 @@ func (g *Game) input() bool {
 
 	// allow move every 5 frame updates. Rather arbitrary,
 	// should probably relate to framerate. In this case, 60/5 times per second
-	if g.framesCounter%5 == 0 {
+	if g.framesCounter%(g.fps/g.keysPs) == 0 {
 		g.allowMove = true
 	}
 
@@ -228,24 +229,26 @@ func (g *Game) draw() {
 }
 
 func main() {
+	const fps = 60
+	const linesPs = 2
+	const keysPs = 10
+	const cols = 12
+	const rows = 10
+
 	rand.Seed(time.Now().UnixNano())
 
 	raylib.InitWindow(480, 800, "Ivo's GO Tetris")
 
-	raylib.SetTargetFPS(60)
-	fmt.Println("My favorite number is", rand.Intn(10))
-
-	const cols = 12
-	const rows = 20
+	raylib.SetTargetFPS(int32(fps))
 
 	board := Game{}
-	board.init(rows, cols)
+	board.init(rows, cols, fps, linesPs, keysPs)
 
 	ab := &ActiveBlock{block: &blocks[rand.Intn(len(blocks))]}
 	ab.row = 4
 	ab.col = 4
 	board.putBlock(ab)
-	board.putSomeBlocks()
+	// board.putSomeBlocks()
 	board.print()
 
 	for !raylib.WindowShouldClose() {
