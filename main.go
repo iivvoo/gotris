@@ -14,7 +14,36 @@ import (
  * Once a block is fixed, it becomes fixed lines on the board
  * full lines are marked as full which allows animation of their
  * removal
+ *
+ * Blocks is pure definitie (met kleur),
+ * ActiveBlock is block in game, met rotatie. Zou zelfs onder
+ * Game kunnen hangen
  */
+
+var block = []string{
+	"XX",
+	"XX",
+}
+
+// Block is a possible tetris figure
+type Block struct {
+	cells []string
+	// color
+}
+
+var square = Block{cells: []string{"XX", "XX"}}
+var line = Block{cells: []string{"XXXX"}}
+var leftL = Block{cells: []string{"X", "XXXX"}}
+var rightL = Block{cells: []string{"  X", "XXX"}}
+var triangle = Block{cells: []string{" X", "XXX"}}
+
+// ActiveBlock is the block currently played
+type ActiveBlock struct {
+	block    *Block
+	row      int
+	col      int
+	rotation int // 1 2 3 4
+}
 
 // Cell in the board
 type Cell struct {
@@ -32,9 +61,10 @@ func (c *Cell) print() {
 
 // Game of cells
 type Game struct {
-	rows  int
-	cols  int
-	board [][]*Cell
+	rows   int
+	cols   int
+	active *ActiveBlock
+	board  [][]*Cell
 }
 
 func (g *Game) init(rows int, cols int) {
@@ -60,23 +90,46 @@ func (g *Game) print() {
 	}
 }
 
+func (g *Game) putBlock(block *ActiveBlock) {
+	g.active = block
+	g.insertBlock()
+}
+
+func (g *Game) insertBlock() {
+	// insert the active block. May fail, handle that later
+	// TODO: rotat
+	var a = g.active
+	var b = a.block
+
+	for r := 0; r < len(b.cells); r++ {
+		for c := 0; c < len(b.cells[r]); c++ {
+			if b.cells[r][c] == 'X' {
+				// only if not already set, else block cannot be placed
+				g.board[a.row+r][a.col+c].used = true
+			}
+		}
+	}
+}
+
 func (g *Game) putSomeBlocks() {
-	g.board[1][1].used = true
-	g.board[1][2].used = true
-	g.board[2][1].used = true
-	g.board[2][2].used = true
+	g.board[10][1].used = true
+	g.board[10][2].used = true
+	g.board[11][1].used = true
+	g.board[11][2].used = true
 }
 
-var block = []string{
-	"XX",
-	"XX",
-}
-
-func drawBlock(x int, y int) {
+func (g *Game) draw() {
 	// Draw a single block. Needs color
 	defer fmt.Println("Block drawn")
 
-	raylib.DrawRectangle(int32(x), int32(y), 20, 20, raylib.Blue)
+	for row := 0; row < len(g.board); row++ {
+		for col := 0; col < len(g.board[row]); col++ {
+			if g.board[row][col].used {
+				raylib.DrawRectangle(int32(col*20), int32(row*20), 20, 20, raylib.Blue)
+			}
+			// else clear?
+		}
+	}
 }
 
 func main() {
@@ -85,12 +138,16 @@ func main() {
 	raylib.SetTargetFPS(1)
 	fmt.Println("My favorite number is", rand.Intn(10))
 
-	const cols = 10
-	const rows = 20
+	const cols = 8
+	const rows = 12
 
 	board := Game{}
 	board.init(rows, cols)
 
+	ab := &ActiveBlock{block: &triangle}
+	ab.row = 4
+	ab.col = 4
+	board.putBlock(ab)
 	board.putSomeBlocks()
 	board.print()
 
@@ -102,7 +159,8 @@ func main() {
 
 		raylib.DrawText("Congrats! You created your first window!", 10, 200, 20, raylib.LightGray)
 
-		drawBlock(rand.Intn(20), rand.Intn(20))
+		// drawBlock(rand.Intn(20), rand.Intn(20))
+		board.draw()
 		raylib.EndDrawing()
 	}
 
