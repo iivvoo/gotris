@@ -29,7 +29,7 @@ type Block struct {
 
 var square = Block{cells: []string{"XX", "XX"}, color: raylib.Red}
 var line = Block{cells: []string{"XXXX"}, color: raylib.Green}
-var leftL = Block{cells: []string{"X", "XXXX"}, color: raylib.Blue}
+var leftL = Block{cells: []string{"X", "XXX"}, color: raylib.Blue}
 var rightL = Block{cells: []string{"  X", "XXX"}, color: raylib.Orange}
 var z = Block{cells: []string{"XX", " XX"}, color: raylib.Yellow}
 var reverseZ = Block{cells: []string{" XX", "XX"}, color: raylib.Gray}
@@ -43,6 +43,10 @@ type ActiveBlock struct {
 	row      int
 	col      int
 	rotation int // 1 2 3 4
+}
+
+func (a *ActiveBlock) random() {
+	a.block = &blocks[rand.Intn(len(blocks))]
 }
 
 // Cell in the board
@@ -120,7 +124,7 @@ func (g *Game) canMoveBlock(dRow int, dCol int) bool {
 			if newRow >= g.rows || newRow < 0 || newCol >= g.cols || newCol < 0 {
 				return false
 			}
-			if g.board[newRow][newCol].used == true {
+			if b.cells[r][c] == 'X' && g.board[newRow][newCol].used == true {
 				return false
 			}
 		}
@@ -244,7 +248,8 @@ func main() {
 	board := Game{}
 	board.init(rows, cols, fps, linesPs, keysPs)
 
-	ab := &ActiveBlock{block: &blocks[rand.Intn(len(blocks))]}
+	ab := &ActiveBlock{block: &z}
+	ab.random()
 	ab.row = 4
 	ab.col = 4
 	board.putBlock(ab)
@@ -260,7 +265,8 @@ func main() {
 		board.draw()
 		board.input()
 		if !board.blockDown() {
-			ab := &ActiveBlock{block: &blocks[rand.Intn(len(blocks))]}
+			ab := &ActiveBlock{block: &z}
+			ab.random()
 			ab.row = 0
 			ab.col = 5
 			board.putBlock(ab)
