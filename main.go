@@ -153,12 +153,27 @@ func (g *Game) putSomeBlocks() {
 	g.board[19][2].used = true
 }
 
+func (g *Game) blockDown() bool {
+	// move active block down 1 row every N frames
+	if g.framesCounter%60 == 0 {
+		if g.canMoveBlock(1, 0) {
+			g.hideBlock()
+			g.active.row++
+			g.showBlock()
+			return true
+		}
+		return false
+	}
+	return true
+}
 func (g *Game) input() bool {
 	var active = g.active
 	var dCol, dRow = 0, 0
 
 	g.framesCounter++
 
+	// allow move every 5 frame updates. Rather arbitrary,
+	// should probably relate to framerate. In this case, 60/5 times per second
 	if g.framesCounter%5 == 0 {
 		g.allowMove = true
 	}
@@ -232,6 +247,12 @@ func main() {
 
 		board.draw()
 		board.input()
+		if !board.blockDown() {
+			ab := &ActiveBlock{block: &triangle}
+			ab.row = 0
+			ab.col = 5
+			board.putBlock(ab)
+		}
 		raylib.EndDrawing()
 	}
 
