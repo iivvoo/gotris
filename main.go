@@ -29,16 +29,16 @@ var block = []string{
 // Block is a possible tetris figure
 type Block struct {
 	cells []string
-	// color
+	color raylib.Color
 }
 
-var square = Block{cells: []string{"XX", "XX"}}
-var line = Block{cells: []string{"XXXX"}}
-var leftL = Block{cells: []string{"X", "XXXX"}}
-var rightL = Block{cells: []string{"  X", "XXX"}}
-var z = Block{cells: []string{"XX", " XX"}}
-var reverseZ = Block{cells: []string{" XX", "XX"}}
-var triangle = Block{cells: []string{" X", "XXX"}}
+var square = Block{cells: []string{"XX", "XX"}, color: raylib.Red}
+var line = Block{cells: []string{"XXXX"}, color: raylib.Green}
+var leftL = Block{cells: []string{"X", "XXXX"}, color: raylib.Blue}
+var rightL = Block{cells: []string{"  X", "XXX"}, color: raylib.Orange}
+var z = Block{cells: []string{"XX", " XX"}, color: raylib.Yellow}
+var reverseZ = Block{cells: []string{" XX", "XX"}, color: raylib.Gray}
+var triangle = Block{cells: []string{" X", "XXX"}, color: raylib.Purple}
 
 var blocks = []Block{square, line, leftL, rightL, z, reverseZ, triangle}
 
@@ -52,8 +52,8 @@ type ActiveBlock struct {
 
 // Cell in the board
 type Cell struct {
-	used bool
-	// should probably be color, possibly connectleft, connecttop
+	used  bool
+	color raylib.Color
 }
 
 func (c *Cell) print() {
@@ -138,6 +138,8 @@ func (g *Game) setBlock(state bool) {
 			if b.cells[r][c] == 'X' {
 				// only if not already set, else block cannot be placed
 				g.board[a.row+r][a.col+c].used = state
+				g.board[a.row+r][a.col+c].color = b.color
+
 			}
 		}
 	}
@@ -217,7 +219,7 @@ func (g *Game) draw() {
 	for row := 0; row < len(g.board); row++ {
 		for col := 0; col < len(g.board[row]); col++ {
 			if g.board[row][col].used {
-				raylib.DrawRectangle(int32(col*40), int32(row*40), 40, 40, raylib.Blue)
+				raylib.DrawRectangle(int32(col*40), int32(row*40), 40, 40, g.board[row][col].color)
 			} else {
 				raylib.DrawRectangle(int32(col*40), int32(row*40), 40, 40, raylib.White)
 			}
