@@ -37,10 +37,10 @@ var line = Block{cells: []string{"XXXX"}}
 var leftL = Block{cells: []string{"X", "XXXX"}}
 var rightL = Block{cells: []string{"  X", "XXX"}}
 var z = Block{cells: []string{"XX", " XX"}}
-var reverse_z = Block{cells: []string{" XX", "XX"}}
+var reverseZ = Block{cells: []string{" XX", "XX"}}
 var triangle = Block{cells: []string{" X", "XXX"}}
 
-var blocks = []Block{square, line, leftL, rightL, z, reverse_z, triangle}
+var blocks = []Block{square, line, leftL, rightL, z, reverseZ, triangle}
 
 // ActiveBlock is the block currently played
 type ActiveBlock struct {
