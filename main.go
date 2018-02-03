@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"time"
 
 	"github.com/gen2brain/raylib-go/raylib"
 )
@@ -35,7 +36,11 @@ var square = Block{cells: []string{"XX", "XX"}}
 var line = Block{cells: []string{"XXXX"}}
 var leftL = Block{cells: []string{"X", "XXXX"}}
 var rightL = Block{cells: []string{"  X", "XXX"}}
+var z = Block{cells: []string{"XX", " XX"}}
+var reverse_z = Block{cells: []string{" XX", "XX"}}
 var triangle = Block{cells: []string{" X", "XXX"}}
+
+var blocks = []Block{square, line, leftL, rightL, z, reverse_z, triangle}
 
 // ActiveBlock is the block currently played
 type ActiveBlock struct {
@@ -221,6 +226,8 @@ func (g *Game) draw() {
 }
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
+
 	raylib.InitWindow(480, 800, "Ivo's GO Tetris")
 
 	raylib.SetTargetFPS(60)
@@ -232,7 +239,7 @@ func main() {
 	board := Game{}
 	board.init(rows, cols)
 
-	ab := &ActiveBlock{block: &triangle}
+	ab := &ActiveBlock{block: &blocks[rand.Intn(len(blocks))]}
 	ab.row = 4
 	ab.col = 4
 	board.putBlock(ab)
@@ -248,7 +255,7 @@ func main() {
 		board.draw()
 		board.input()
 		if !board.blockDown() {
-			ab := &ActiveBlock{block: &triangle}
+			ab := &ActiveBlock{block: &blocks[rand.Intn(len(blocks))]}
 			ab.row = 0
 			ab.col = 5
 			board.putBlock(ab)
