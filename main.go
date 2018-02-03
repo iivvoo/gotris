@@ -61,13 +61,17 @@ func (c *Cell) print() {
 
 // Game of cells
 type Game struct {
-	rows   int
-	cols   int
-	active *ActiveBlock
-	board  [][]*Cell
+	rows          int
+	cols          int
+	framesCounter int
+	allowMove     bool
+	active        *ActiveBlock
+	board         [][]*Cell
 }
 
 func (g *Game) init(rows int, cols int) {
+	g.framesCounter = 0
+	g.allowMove = true
 	g.rows = rows
 	g.cols = cols
 
@@ -92,28 +96,30 @@ func (g *Game) print() {
 
 func (g *Game) putBlock(block *ActiveBlock) {
 	g.active = block
-	g.insertBlock()
+	g.showBlock()
 }
 
 func (g *Game) canMoveBlock(dRow int, dCol int) bool {
-	return true
-
-	// insert the active block. May fail, handle that later
-	// TODO: rotat
 	var a = g.active
 	var b = a.block
 
-	fmt.Printf("%d %d", a.row, a.col)
+	defer g.setBlock(true)
+	g.setBlock(false)
 
 	for r := 0; r < len(b.cells); r++ {
 		for c := 0; c < len(b.cells[r]); c++ {
-			if b.cells[r][c] == 'X' {
-				// only if not already set, else block cannot be placed
-				g.board[a.row+r][a.col+c].used = true
+			var newRow = a.row + r + dRow
+			var newCol = a.col + c + dCol
+
+			if newRow >= g.rows || newRow < 0 || newCol >= g.cols || newCol < 0 {
+				return false
+			}
+			if g.board[newRow][newCol].used == true {
+				return false
 			}
 		}
 	}
-	return false
+	return true
 }
 
 func (g *Game) setBlock(state bool) {
@@ -121,8 +127,6 @@ func (g *Game) setBlock(state bool) {
 	// TODO: rotat
 	var a = g.active
 	var b = a.block
-
-	fmt.Printf("%d %d", a.row, a.col)
 
 	for r := 0; r < len(b.cells); r++ {
 		for c := 0; c < len(b.cells[r]); c++ {
@@ -134,49 +138,58 @@ func (g *Game) setBlock(state bool) {
 	}
 }
 
-func (g *Game) insertBlock() {
+func (g *Game) showBlock() {
 	g.setBlock(true)
 }
 
-func (g *Game) clearBlock() {
+func (g *Game) hideBlock() {
 	g.setBlock(false)
 }
 
 func (g *Game) putSomeBlocks() {
-	g.board[10][1].used = true
-	g.board[10][2].used = true
-	g.board[11][1].used = true
-	g.board[11][2].used = true
+	g.board[18][1].used = true
+	g.board[18][2].used = true
+	g.board[19][1].used = true
+	g.board[19][2].used = true
 }
 
-func (g *Game) input() {
+func (g *Game) input() bool {
 	var active = g.active
 	var dCol, dRow = 0, 0
 
+	g.framesCounter++
+
+	if g.framesCounter%5 == 0 {
+		g.allowMove = true
+	}
+
+	if !g.allowMove {
+		return false
+	}
+
 	if raylib.IsKeyDown(raylib.KeyRight) {
-		fmt.Println("Right")
 		dCol = 1
 	}
 	if raylib.IsKeyDown(raylib.KeyLeft) {
-		fmt.Println("Left")
 		dCol = -1
 	}
 	if raylib.IsKeyDown(raylib.KeyUp) {
-		fmt.Println("Up")
 		dRow = -1
 	}
 	if raylib.IsKeyDown(raylib.KeyDown) {
-		fmt.Println("Down")
 		dRow = 1
 	}
 	if g.canMoveBlock(dRow, dCol) {
-		g.clearBlock()
+		g.hideBlock()
 		active.row += dRow
 		active.col += dCol
-		g.insertBlock()
-
+		g.showBlock()
+		g.allowMove = false
+		return true
 	}
+	return false
 }
+
 func (g *Game) draw() {
 	// Draw a single block. Needs color
 	// defer fmt.Println("Block drawn")
@@ -184,22 +197,22 @@ func (g *Game) draw() {
 	for row := 0; row < len(g.board); row++ {
 		for col := 0; col < len(g.board[row]); col++ {
 			if g.board[row][col].used {
-				raylib.DrawRectangle(int32(col*20), int32(row*20), 20, 20, raylib.Blue)
+				raylib.DrawRectangle(int32(col*40), int32(row*40), 40, 40, raylib.Blue)
 			} else {
-				raylib.DrawRectangle(int32(col*20), int32(row*20), 20, 20, raylib.White)
+				raylib.DrawRectangle(int32(col*40), int32(row*40), 40, 40, raylib.White)
 			}
 		}
 	}
 }
 
 func main() {
-	raylib.InitWindow(450, 800, "Ivo's GO Tetris")
+	raylib.InitWindow(480, 800, "Ivo's GO Tetris")
 
-	raylib.SetTargetFPS(6)
+	raylib.SetTargetFPS(60)
 	fmt.Println("My favorite number is", rand.Intn(10))
 
-	const cols = 8
-	const rows = 12
+	const cols = 12
+	const rows = 20
 
 	board := Game{}
 	board.init(rows, cols)
@@ -217,9 +230,6 @@ func main() {
 
 		raylib.ClearBackground(raylib.RayWhite)
 
-		// raylib.DrawText("Congrats! You created your first window!", 10, 200, 20, raylib.LightGray)
-
-		// drawBlock(rand.Intn(20), rand.Intn(20))
 		board.draw()
 		board.input()
 		raylib.EndDrawing()
