@@ -11,7 +11,6 @@ import (
 
 /*
  * TODO
- * Detect game over (first block can't be placed)
  * Pause game
  * Restart after finished
  * "Animate" clearing of rows
@@ -357,15 +356,15 @@ func main() {
 	// board.print()
 
 	for !raylib.WindowShouldClose() {
-		for !gameOver {
-			raylib.BeginDrawing()
+		raylib.BeginDrawing()
 
-			raylib.ClearBackground(raylib.LightGray)
-			raylib.DrawText("Next", 420, 100, 40, raylib.Black)
-			raylib.DrawText("Lines", 420, 300, 40, raylib.Black)
-			raylib.DrawText(strconv.Itoa(board.lines), 420, 350, 40, raylib.Black)
-			raylib.DrawText("Score", 420, 500, 40, raylib.Black)
-			raylib.DrawText(strconv.Itoa(board.score), 420, 550, 40, raylib.Black)
+		raylib.ClearBackground(raylib.LightGray)
+		raylib.DrawText("Next", 420, 100, 40, raylib.Black)
+		raylib.DrawText("Lines", 420, 300, 40, raylib.Black)
+		raylib.DrawText(strconv.Itoa(board.lines), 420, 350, 40, raylib.Black)
+		raylib.DrawText("Score", 420, 500, 40, raylib.Black)
+		raylib.DrawText(strconv.Itoa(board.score), 420, 550, 40, raylib.Black)
+		if !gameOver {
 			board.draw()
 			board.input()
 			if !board.blockDown() {
@@ -384,10 +383,9 @@ func main() {
 					fmt.Println("Game Over?")
 				}
 			}
-			raylib.EndDrawing()
+		} else {
+			raylib.DrawText("Game Over!", 100, 400, 40, raylib.Black)
 		}
-		raylib.BeginDrawing()
-		raylib.DrawText("Game Over!", 100, 400, 40, raylib.Black)
 		raylib.EndDrawing()
 	}
 
