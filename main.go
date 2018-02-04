@@ -13,6 +13,8 @@ import (
  * Detect game over (first block can't be placed)
  * Keep score
  * "Animate" clearing of rows
+ * Show next block
+ * Project where block will end when dropped
  * make Row a struct?
  *  -> keeps track if 'full', etc
  */
@@ -196,7 +198,6 @@ func (g *Game) setBlock(state bool) {
 				// only if not already set, else block cannot be placed
 				g.board[a.row+r][a.col+c].used = state
 				g.board[a.row+r][a.col+c].color = b.color
-
 			}
 		}
 	}
@@ -224,8 +225,8 @@ func (g *Game) blockDown() bool {
 	return true
 }
 
-func (g *Game) checkFullLines() int {
-	// check full lines, remove them
+func (g *Game) checkFullRows() int {
+	// this could be replaced entirely if Row would be a struct
 	var full []int
 
 	for i := 0; i < g.rows; i++ {
@@ -244,7 +245,7 @@ func (g *Game) checkFullLines() int {
 	return len(full)
 }
 
-func (g *Game) clearFullLines() {
+func (g *Game) clearFullRows() {
 	for _, line := range g.full {
 		for above := line - 1; above >= 0; above-- {
 			for c := 0; c < g.cols; c++ {
@@ -318,7 +319,7 @@ func main() {
 	const linesPs = 2
 	const keysPs = 10
 	const cols = 10
-	const rows = 10
+	const rows = 20
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -349,8 +350,8 @@ func main() {
 			ab.random()
 			ab.row = 0
 			ab.col = 5
-			board.checkFullLines()
-			board.clearFullLines()
+			board.checkFullRows()
+			board.clearFullRows()
 			board.putBlock(ab)
 		}
 		raylib.EndDrawing()
