@@ -277,7 +277,7 @@ func (g *Game) clearFullRows() {
 	// make sure g.board[0] is entirely cleared
 }
 
-func (g *Game) input() bool {
+func (g *Game) input() {
 	var active = g.active
 	var dCol, dRow, dRot = 0, 0, 0
 	var changed = false
@@ -286,7 +286,7 @@ func (g *Game) input() bool {
 
 	// require a specific interval between keypresses
 	if g.framesCounter-g.fcLastKey < (g.fps / g.keysPs) {
-		return false
+		return
 	}
 
 	if raylib.IsKeyDown(raylib.KeyRight) {
@@ -316,9 +316,7 @@ func (g *Game) input() bool {
 		active.rotation += dRot
 		g.showBlock()
 		g.fcLastKey = g.framesCounter
-		return true
 	}
-	return false
 }
 
 func (g *Game) draw() {
