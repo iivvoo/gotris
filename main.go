@@ -72,12 +72,35 @@ func (a *ActiveBlock) random() {
 func (a *ActiveBlock) getCell(row int, col int, dRot int) bool {
 	// returns the state of the cell at (row, col), taking
 	// rotation + change into account into account (eventually)
-	// rotation := (a.rotation + dRot) % 4
-	return a.block.cells[row][col] == 'X'
+	var cRows, cCols = a.getDims(dRot)
+	var mRow, mCol = row, col
+	var rotation = (a.rotation + dRot) % 4
+
+	cRows--
+	cCols--
+
+	switch rotation {
+	case 1:
+		mRow = cCols - col
+		mCol = row
+	case 2:
+		mRow = cRows - row
+		mCol = cCols - col
+	case 3:
+		mRow = col
+		mCol = cRows - row
+	}
+
+	return a.block.cells[mRow][mCol] == 'X'
 }
 
 func (a *ActiveBlock) getDims(dRot int) (int, int) {
-	return len(a.block.cells), len(a.block.cells[0])
+	var rotation = (a.rotation + dRot) % 4
+
+	if rotation%2 == 0 {
+		return len(a.block.cells), len(a.block.cells[0])
+	}
+	return len(a.block.cells[0]), len(a.block.cells)
 }
 
 // Cell in the board
@@ -248,6 +271,9 @@ func (g *Game) input() bool {
 		active.row += dRow
 		active.col += dCol
 		active.rotation += dRot
+		if dRot > 0 {
+			fmt.Println("Rotation changed")
+		}
 		g.showBlock()
 		g.allowMove = false
 		return true
@@ -273,7 +299,7 @@ func (g *Game) draw() {
 func main() {
 	const fps = 60
 	const linesPs = 2
-	const keysPs = 10
+	const keysPs = 4
 	const cols = 12
 	const rows = 20
 
