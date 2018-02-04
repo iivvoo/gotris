@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 	"time"
 
 	"github.com/gen2brain/raylib-go/raylib"
@@ -11,7 +12,8 @@ import (
 /*
  * TODO
  * Detect game over (first block can't be placed)
- * Keep score
+ * Pause game
+ * Restart after finished
  * "Animate" clearing of rows
  * Show next block
  * Project where block will end when dropped
@@ -125,6 +127,8 @@ type Game struct {
 	framesCounter int
 	fcLastKey     int
 	active        *ActiveBlock
+	score         int
+	lines         int
 	full          []int
 	board         [][]*Cell
 }
@@ -137,6 +141,9 @@ func (g *Game) init(rows int, cols int, fps int, linesPs int, keysPs int) {
 	g.fps = fps
 	g.linesPs = linesPs
 	g.keysPs = keysPs
+
+	g.score = 0
+	g.lines = 0
 
 	g.board = make([][]*Cell, rows) // rows + 1?
 
@@ -241,7 +248,6 @@ func (g *Game) checkFullRows() int {
 		}
 	}
 	g.full = full
-	fmt.Println(g.full)
 	return len(full)
 }
 
@@ -323,7 +329,7 @@ func main() {
 
 	rand.Seed(time.Now().UnixNano())
 
-	raylib.InitWindow(480, 800, "Ivo's GO Tetris")
+	raylib.InitWindow(600, 800, "Ivo's GO Tetris")
 
 	raylib.SetTargetFPS(int32(fps))
 
@@ -338,11 +344,14 @@ func main() {
 	// board.print()
 
 	for !raylib.WindowShouldClose() {
-		// fmt.Printf("loop..")
 		raylib.BeginDrawing()
 
-		raylib.ClearBackground(raylib.RayWhite)
-
+		raylib.ClearBackground(raylib.LightGray)
+		raylib.DrawText("Next", 420, 100, 40, raylib.Black)
+		raylib.DrawText("Lines", 420, 300, 40, raylib.Black)
+		raylib.DrawText(strconv.Itoa(board.lines), 420, 350, 40, raylib.Black)
+		raylib.DrawText("Score", 420, 500, 40, raylib.Black)
+		raylib.DrawText(strconv.Itoa(board.score), 420, 550, 40, raylib.Black)
 		board.draw()
 		board.input()
 		if !board.blockDown() {
@@ -350,7 +359,11 @@ func main() {
 			ab.random()
 			ab.row = 0
 			ab.col = 5
-			board.checkFullRows()
+			fullLines := board.checkFullRows()
+			board.lines += fullLines
+
+			board.score += fullLines * fullLines * 10
+
 			board.clearFullRows()
 			board.putBlock(ab)
 		}
