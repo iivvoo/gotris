@@ -71,8 +71,13 @@ func (a *ActiveBlock) random() {
 
 func (a *ActiveBlock) getCell(row int, col int, dRot int) bool {
 	// returns the state of the cell at (row, col), taking
-	// rotation into account (eventually)
+	// rotation + change into account into account (eventually)
+	// rotation := (a.rotation + dRot) % 4
 	return a.block.cells[row][col] == 'X'
+}
+
+func (a *ActiveBlock) getDims(dRot int) (int, int) {
+	return len(a.block.cells), len(a.block.cells[0])
 }
 
 // Cell in the board
@@ -137,13 +142,14 @@ func (g *Game) putBlock(block *ActiveBlock) {
 
 func (g *Game) canMoveBlock(dRow int, dCol int, dRot int) bool {
 	var a = g.active
-	var b = a.block
+
+	var cRows, cCols = a.getDims(dRot)
 
 	defer g.setBlock(true)
 	g.setBlock(false)
 
-	for r := 0; r < len(b.cells); r++ {
-		for c := 0; c < len(b.cells[r]); c++ {
+	for r := 0; r < cRows; r++ {
+		for c := 0; c < cCols; c++ {
 			var newRow = a.row + r + dRow
 			var newCol = a.col + c + dCol
 
@@ -162,9 +168,10 @@ func (g *Game) setBlock(state bool) {
 	// TODO: rotate
 	var a = g.active
 	var b = a.block
+	var cRows, cCols = a.getDims(0)
 
-	for r := 0; r < len(b.cells); r++ {
-		for c := 0; c < len(b.cells[r]); c++ {
+	for r := 0; r < cRows; r++ {
+		for c := 0; c < cCols; c++ {
 			if a.getCell(r, c, 0) {
 				// only if not already set, else block cannot be placed
 				g.board[a.row+r][a.col+c].used = state
