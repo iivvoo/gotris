@@ -125,14 +125,14 @@ type Game struct {
 	rows          int
 	cols          int
 	framesCounter int
-	allowMove     bool
+	fcLastKey     int
 	active        *ActiveBlock
 	board         [][]*Cell
 }
 
 func (g *Game) init(rows int, cols int, fps int, linesPs int, keysPs int) {
 	g.framesCounter = 0
-	g.allowMove = true
+	g.fcLastKey = 0
 	g.rows = rows
 	g.cols = cols
 	g.fps = fps
@@ -242,11 +242,7 @@ func (g *Game) input() bool {
 
 	// allow move every 5 frame updates. Rather arbitrary,
 	// should probably relate to framerate. In this case, 60/5 times per second
-	if g.framesCounter%(g.fps/g.keysPs) == 0 {
-		g.allowMove = true
-	}
-
-	if !g.allowMove {
+	if g.framesCounter-g.fcLastKey < (g.fps / g.keysPs) {
 		return false
 	}
 
@@ -271,11 +267,8 @@ func (g *Game) input() bool {
 		active.row += dRow
 		active.col += dCol
 		active.rotation += dRot
-		if dRot > 0 {
-			fmt.Println("Rotation changed")
-		}
 		g.showBlock()
-		g.allowMove = false
+		g.fcLastKey = g.framesCounter
 		return true
 	}
 	return false
