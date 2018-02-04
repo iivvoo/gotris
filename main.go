@@ -16,7 +16,8 @@ import (
  * Restart after finished
  * "Animate" clearing of rows
  * Show next block
- * Project where block will end when dropped
+ * Increase linedrop speed when #lines/score increases
+ * Projection where block will end when dropped
  * make Row a struct?
  *  -> keeps track if 'full', etc
  */
@@ -164,9 +165,9 @@ func (g *Game) print() {
 	}
 }
 
-func (g *Game) putBlock(block *ActiveBlock) {
+func (g *Game) putBlock(block *ActiveBlock) bool {
 	g.active = block
-	g.showBlock()
+	return g.showBlock()
 }
 
 func (g *Game) canMoveBlock(dRow int, dCol int, dRot int) bool {
@@ -193,12 +194,21 @@ func (g *Game) canMoveBlock(dRow int, dCol int, dRot int) bool {
 	return true
 }
 
-func (g *Game) setBlock(state bool) {
+func (g *Game) setBlock(state bool) bool {
 	// TODO: rotate
 	var a = g.active
 	var b = a.block
 	var cRows, cCols = a.getDims(0)
 
+	if state {
+		for r := 0; r < cRows; r++ {
+			for c := 0; c < cCols; c++ {
+				if a.getCell(r, c, 0) && g.board[a.row+r][a.col+c].used {
+					return false
+				}
+			}
+		}
+	}
 	for r := 0; r < cRows; r++ {
 		for c := 0; c < cCols; c++ {
 			if a.getCell(r, c, 0) {
@@ -208,10 +218,11 @@ func (g *Game) setBlock(state bool) {
 			}
 		}
 	}
+	return true
 }
 
-func (g *Game) showBlock() {
-	g.setBlock(true)
+func (g *Game) showBlock() bool {
+	return g.setBlock(true)
 }
 
 func (g *Game) hideBlock() {
@@ -325,7 +336,9 @@ func main() {
 	const linesPs = 2
 	const keysPs = 10
 	const cols = 10
-	const rows = 20
+	const rows = 10
+
+	var gameOver = false
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -344,29 +357,37 @@ func main() {
 	// board.print()
 
 	for !raylib.WindowShouldClose() {
-		raylib.BeginDrawing()
+		for !gameOver {
+			raylib.BeginDrawing()
 
-		raylib.ClearBackground(raylib.LightGray)
-		raylib.DrawText("Next", 420, 100, 40, raylib.Black)
-		raylib.DrawText("Lines", 420, 300, 40, raylib.Black)
-		raylib.DrawText(strconv.Itoa(board.lines), 420, 350, 40, raylib.Black)
-		raylib.DrawText("Score", 420, 500, 40, raylib.Black)
-		raylib.DrawText(strconv.Itoa(board.score), 420, 550, 40, raylib.Black)
-		board.draw()
-		board.input()
-		if !board.blockDown() {
-			ab := &ActiveBlock{block: &z}
-			ab.random()
-			ab.row = 0
-			ab.col = 5
-			fullLines := board.checkFullRows()
-			board.lines += fullLines
+			raylib.ClearBackground(raylib.LightGray)
+			raylib.DrawText("Next", 420, 100, 40, raylib.Black)
+			raylib.DrawText("Lines", 420, 300, 40, raylib.Black)
+			raylib.DrawText(strconv.Itoa(board.lines), 420, 350, 40, raylib.Black)
+			raylib.DrawText("Score", 420, 500, 40, raylib.Black)
+			raylib.DrawText(strconv.Itoa(board.score), 420, 550, 40, raylib.Black)
+			board.draw()
+			board.input()
+			if !board.blockDown() {
+				ab := &ActiveBlock{block: &z}
+				ab.random()
+				ab.row = 0
+				ab.col = 5
+				fullLines := board.checkFullRows()
+				board.lines += fullLines
 
-			board.score += fullLines * fullLines * 10
+				board.score += fullLines * fullLines * 10
 
-			board.clearFullRows()
-			board.putBlock(ab)
+				board.clearFullRows()
+				if !board.putBlock(ab) {
+					gameOver = true
+					fmt.Println("Game Over?")
+				}
+			}
+			raylib.EndDrawing()
 		}
+		raylib.BeginDrawing()
+		raylib.DrawText("Game Over!", 100, 400, 40, raylib.Black)
 		raylib.EndDrawing()
 	}
 
