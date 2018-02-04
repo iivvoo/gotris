@@ -69,7 +69,7 @@ func (a *ActiveBlock) random() {
 	a.block = &blocks[rand.Intn(len(blocks))]
 }
 
-func (a *ActiveBlock) getCell(row int, col int) bool {
+func (a *ActiveBlock) getCell(row int, col int, dRot int) bool {
 	// returns the state of the cell at (row, col), taking
 	// rotation into account (eventually)
 	return a.block.cells[row][col] == 'X'
@@ -150,7 +150,7 @@ func (g *Game) canMoveBlock(dRow int, dCol int, dRot int) bool {
 			if newRow >= g.rows || newRow < 0 || newCol >= g.cols || newCol < 0 {
 				return false
 			}
-			if a.getCell(r, c) && g.board[newRow][newCol].used {
+			if a.getCell(r, c, dRot) && g.board[newRow][newCol].used {
 				return false
 			}
 		}
@@ -165,7 +165,7 @@ func (g *Game) setBlock(state bool) {
 
 	for r := 0; r < len(b.cells); r++ {
 		for c := 0; c < len(b.cells[r]); c++ {
-			if a.getCell(r, c) {
+			if a.getCell(r, c, 0) {
 				// only if not already set, else block cannot be placed
 				g.board[a.row+r][a.col+c].used = state
 				g.board[a.row+r][a.col+c].color = b.color
@@ -240,6 +240,7 @@ func (g *Game) input() bool {
 		g.hideBlock()
 		active.row += dRow
 		active.col += dCol
+		active.rotation += dRot
 		g.showBlock()
 		g.allowMove = false
 		return true
