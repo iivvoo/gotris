@@ -130,6 +130,7 @@ type Game struct {
 	score         int
 	lines         int
 	full          []int
+	paused        bool
 	board         [][]*Cell
 }
 
@@ -141,6 +142,7 @@ func (g *Game) init(rows int, cols int, fps int, linesPs int, keysPs int) {
 	g.fps = fps
 	g.linesPs = linesPs
 	g.keysPs = keysPs
+	g.paused = false
 
 	g.score = 0
 	g.lines = 0
@@ -303,7 +305,11 @@ func (g *Game) input() bool {
 		dRow = 1
 		changed = true
 	}
-	if changed && g.canMoveBlock(dRow, dCol, dRot) {
+	if raylib.IsKeyDown(raylib.KeyP) {
+		g.paused = !g.paused
+		g.fcLastKey = g.framesCounter
+	}
+	if !g.paused && changed && g.canMoveBlock(dRow, dCol, dRot) {
 		g.hideBlock()
 		active.row += dRow
 		active.col += dCol
@@ -333,7 +339,7 @@ func (g *Game) draw() {
 func main() {
 	const fps = 60
 	const linesPs = 2
-	const keysPs = 10
+	const keysPs = 6
 	const cols = 10
 	const rows = 10
 
@@ -367,21 +373,25 @@ func main() {
 		if !gameOver {
 			board.draw()
 			board.input()
-			if !board.blockDown() {
-				ab := &ActiveBlock{block: &z}
-				ab.random()
-				ab.row = 0
-				ab.col = 5
-				fullLines := board.checkFullRows()
-				board.lines += fullLines
+			if !board.paused {
+				if !board.blockDown() {
+					ab := &ActiveBlock{block: &z}
+					ab.random()
+					ab.row = 0
+					ab.col = 5
+					fullLines := board.checkFullRows()
+					board.lines += fullLines
 
-				board.score += fullLines * fullLines * 10
+					board.score += fullLines * fullLines * 10
 
-				board.clearFullRows()
-				if !board.putBlock(ab) {
-					gameOver = true
-					fmt.Println("Game Over?")
+					board.clearFullRows()
+					if !board.putBlock(ab) {
+						gameOver = true
+						fmt.Println("Game Over?")
+					}
 				}
+			} else {
+				raylib.DrawText("Paused", 100, 400, 40, raylib.Black)
 			}
 		} else {
 			raylib.DrawText("Game Over!", 100, 400, 40, raylib.Black)
