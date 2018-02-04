@@ -9,16 +9,12 @@ import (
 )
 
 /*
- * Board consists of Cells
- * Blocks define figures, but there's also an active block.
- * This can be the actual figure, just reset it afterwards.
- * Once a block is fixed, it becomes fixed lines on the board
- * full lines are marked as full which allows animation of their
- * removal
- *
- * Blocks is pure definitie (met kleur),
- * ActiveBlock is block in game, met rotatie. Zou zelfs onder
- * Game kunnen hangen
+ * TODO
+ * Detect game over (first block can't be placed)
+ * Keep score
+ * "Animate" clearing of rows
+ * make Row a struct?
+ *  -> keeps track if 'full', etc
  */
 
 // Block is a possible tetris figure
@@ -127,6 +123,7 @@ type Game struct {
 	framesCounter int
 	fcLastKey     int
 	active        *ActiveBlock
+	full          []int
 	board         [][]*Cell
 }
 
@@ -213,13 +210,6 @@ func (g *Game) hideBlock() {
 	g.setBlock(false)
 }
 
-func (g *Game) putSomeBlocks() {
-	g.board[g.rows-2][1].used = true
-	g.board[g.rows-2][2].used = true
-	g.board[g.rows-1][1].used = true
-	g.board[g.rows-1][2].used = true
-}
-
 func (g *Game) blockDown() bool {
 	// move active block down 1 row every N frames
 	if g.framesCounter%(g.fps/g.linesPs) == 0 {
@@ -233,6 +223,41 @@ func (g *Game) blockDown() bool {
 	}
 	return true
 }
+
+func (g *Game) checkFullLines() int {
+	// check full lines, remove them
+	var full []int
+
+	for i := 0; i < g.rows; i++ {
+		var usedCount = 0
+		for _, c := range g.board[i] {
+			if c.used {
+				usedCount++
+			}
+		}
+		if usedCount == g.cols {
+			full = append(full, i)
+		}
+	}
+	g.full = full
+	fmt.Println(g.full)
+	return len(full)
+}
+
+func (g *Game) clearFullLines() {
+	for _, line := range g.full {
+		for above := line - 1; above >= 0; above-- {
+			for c := 0; c < g.cols; c++ {
+				g.board[above+1][c] = g.board[above][c]
+			}
+		}
+		for c := 0; c < g.cols; c++ {
+			g.board[0][c] = &Cell{}
+		}
+	}
+	// make sure g.board[0] is entirely cleared
+}
+
 func (g *Game) input() bool {
 	var active = g.active
 	var dCol, dRow, dRot = 0, 0, 0
@@ -240,8 +265,7 @@ func (g *Game) input() bool {
 
 	g.framesCounter++
 
-	// allow move every 5 frame updates. Rather arbitrary,
-	// should probably relate to framerate. In this case, 60/5 times per second
+	// require a specific interval between keypresses
 	if g.framesCounter-g.fcLastKey < (g.fps / g.keysPs) {
 		return false
 	}
@@ -292,9 +316,9 @@ func (g *Game) draw() {
 func main() {
 	const fps = 60
 	const linesPs = 2
-	const keysPs = 4
-	const cols = 12
-	const rows = 20
+	const keysPs = 10
+	const cols = 10
+	const rows = 10
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -310,7 +334,6 @@ func main() {
 	ab.row = 4
 	ab.col = 4
 	board.putBlock(ab)
-	// board.putSomeBlocks()
 	// board.print()
 
 	for !raylib.WindowShouldClose() {
@@ -326,6 +349,8 @@ func main() {
 			ab.random()
 			ab.row = 0
 			ab.col = 5
+			board.checkFullLines()
+			board.clearFullLines()
 			board.putBlock(ab)
 		}
 		raylib.EndDrawing()
