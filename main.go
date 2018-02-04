@@ -11,7 +11,6 @@ import (
 
 /*
  * TODO
- * Pause game
  * Restart after finished
  * "Animate" clearing of rows
  * Show next block
@@ -293,6 +292,13 @@ func (g *Game) input() {
 		dCol = 1
 		changed = true
 	}
+	if raylib.IsKeyDown(raylib.KeySpace) {
+		// test how far down we can go
+		for g.canMoveBlock(dRow+1, dCol, dRot) {
+			dRow++
+		}
+		changed = true
+	}
 	if raylib.IsKeyDown(raylib.KeyLeft) {
 		dCol = -1
 		changed = true
@@ -310,6 +316,8 @@ func (g *Game) input() {
 		g.fcLastKey = g.framesCounter
 	}
 	if !g.paused && changed && g.canMoveBlock(dRow, dCol, dRot) {
+		// dropping means adding rows until we no longer can
+
 		g.hideBlock()
 		active.row += dRow
 		active.col += dCol
@@ -354,7 +362,7 @@ func main() {
 
 	ab := &ActiveBlock{block: &z}
 	ab.random()
-	ab.row = 4
+	ab.row = 0
 	ab.col = 4
 	board.putBlock(ab)
 	// board.print()
