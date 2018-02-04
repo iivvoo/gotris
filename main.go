@@ -49,6 +49,12 @@ func (a *ActiveBlock) random() {
 	a.block = &blocks[rand.Intn(len(blocks))]
 }
 
+func (a *ActiveBlock) getCell(row int, col int) bool {
+	// returns the state of the cell at (row, col), taking
+	// rotation into account (eventually)
+	return a.block.cells[row][col] == 'X'
+}
+
 // Cell in the board
 type Cell struct {
 	used  bool
@@ -109,7 +115,7 @@ func (g *Game) putBlock(block *ActiveBlock) {
 	g.showBlock()
 }
 
-func (g *Game) canMoveBlock(dRow int, dCol int) bool {
+func (g *Game) canMoveBlock(dRow int, dCol int, dRot int) bool {
 	var a = g.active
 	var b = a.block
 
@@ -124,7 +130,7 @@ func (g *Game) canMoveBlock(dRow int, dCol int) bool {
 			if newRow >= g.rows || newRow < 0 || newCol >= g.cols || newCol < 0 {
 				return false
 			}
-			if b.cells[r][c] == 'X' && g.board[newRow][newCol].used == true {
+			if a.getCell(r, c) && g.board[newRow][newCol].used {
 				return false
 			}
 		}
@@ -133,14 +139,13 @@ func (g *Game) canMoveBlock(dRow int, dCol int) bool {
 }
 
 func (g *Game) setBlock(state bool) {
-	// insert the active block. May fail, handle that later
-	// TODO: rotat
+	// TODO: rotate
 	var a = g.active
 	var b = a.block
 
 	for r := 0; r < len(b.cells); r++ {
 		for c := 0; c < len(b.cells[r]); c++ {
-			if b.cells[r][c] == 'X' {
+			if a.getCell(r, c) {
 				// only if not already set, else block cannot be placed
 				g.board[a.row+r][a.col+c].used = state
 				g.board[a.row+r][a.col+c].color = b.color
@@ -168,7 +173,7 @@ func (g *Game) putSomeBlocks() {
 func (g *Game) blockDown() bool {
 	// move active block down 1 row every N frames
 	if g.framesCounter%(g.fps/g.linesPs) == 0 {
-		if g.canMoveBlock(1, 0) {
+		if g.canMoveBlock(1, 0, 0) {
 			g.hideBlock()
 			g.active.row++
 			g.showBlock()
@@ -180,7 +185,8 @@ func (g *Game) blockDown() bool {
 }
 func (g *Game) input() bool {
 	var active = g.active
-	var dCol, dRow = 0, 0
+	var dCol, dRow, dRot = 0, 0, 0
+	var changed = false
 
 	g.framesCounter++
 
@@ -196,17 +202,21 @@ func (g *Game) input() bool {
 
 	if raylib.IsKeyDown(raylib.KeyRight) {
 		dCol = 1
+		changed = true
 	}
 	if raylib.IsKeyDown(raylib.KeyLeft) {
 		dCol = -1
+		changed = true
 	}
 	if raylib.IsKeyDown(raylib.KeyUp) {
-		dRow = -1
+		dRot = 1
+		changed = true
 	}
 	if raylib.IsKeyDown(raylib.KeyDown) {
 		dRow = 1
+		changed = true
 	}
-	if g.canMoveBlock(dRow, dCol) {
+	if changed && g.canMoveBlock(dRow, dCol, dRot) {
 		g.hideBlock()
 		active.row += dRow
 		active.col += dCol
@@ -237,7 +247,7 @@ func main() {
 	const linesPs = 2
 	const keysPs = 10
 	const cols = 12
-	const rows = 10
+	const rows = 20
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -254,7 +264,7 @@ func main() {
 	ab.col = 4
 	board.putBlock(ab)
 	// board.putSomeBlocks()
-	board.print()
+	// board.print()
 
 	for !raylib.WindowShouldClose() {
 		// fmt.Printf("loop..")
