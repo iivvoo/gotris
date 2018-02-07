@@ -361,6 +361,19 @@ func (g *Game) drawNext(nextX int, nextY int) {
 
 }
 
+func (g *Game) shiftBlock() *ActiveBlock {
+	// return next block as active, initialize next with fresh block
+	if g.next == nil {
+		// first time there won't be a next block ready
+		g.next = &blocks[rand.Intn(len(blocks))]
+	}
+	ab := &ActiveBlock{block: g.next}
+	ab.row = 0
+	ab.col = g.cols/2 - 1
+	g.next = &blocks[rand.Intn(len(blocks))]
+	return ab
+}
+
 func main() {
 	const fps = 60
 	const linesPs = 2
@@ -379,11 +392,7 @@ func main() {
 	board := Game{}
 	board.init(rows, cols, fps, linesPs, keysPs)
 
-	ab := &ActiveBlock{block: &z}
-	ab.random()
-	ab.row = 0
-	ab.col = cols/2 - 1
-	board.next = &blocks[rand.Intn(len(blocks))]
+	ab := board.shiftBlock()
 	board.putBlock(ab)
 	// board.print()
 
@@ -402,10 +411,7 @@ func main() {
 			board.input()
 			if !board.paused {
 				if !board.blockDown() {
-					ab := &ActiveBlock{block: board.next}
-					ab.row = 0
-					ab.col = cols/2 - 1
-					board.next = &blocks[rand.Intn(len(blocks))]
+					ab := board.shiftBlock()
 					fullLines := board.checkFullRows()
 					board.lines += fullLines
 
