@@ -148,17 +148,17 @@ func (g *Game) init(rows int, cols int, fps int, linesPs int, keysPs int) {
 
 	g.board = make([][]*Cell, rows) // rows + 1?
 
-	for i := 0; i < len(g.board); i++ {
+	for i := range g.board {
 		g.board[i] = make([]*Cell, cols) // cols + 1?
-		for j := 0; j < cols; j++ {
+		for j := range g.board[i] {
 			g.board[i][j] = &Cell{}
 		}
 	}
 }
 
 func (g *Game) print() {
-	for i := 0; i < len(g.board); i++ {
-		for j := 0; j < len(g.board[i]); j++ {
+	for i := range g.board {
+		for j := range g.board[i] {
 			g.board[i][j].print()
 		}
 		fmt.Println()
@@ -331,12 +331,12 @@ func (g *Game) draw() {
 	// Draw a single block. Needs color
 	// defer fmt.Println("Block drawn")
 
-	for row := 0; row < len(g.board); row++ {
-		for col := 0; col < len(g.board[row]); col++ {
-			if g.board[row][col].used {
-				raylib.DrawRectangle(int32(col*40), int32(row*40), 40, 40, g.board[row][col].color)
+	for i, row := range g.board { // row := 0; row < len(g.board); row++ {
+		for j, col := range row { //
+			if col.used {
+				raylib.DrawRectangle(int32(j*40), int32(i*40), 40, 40, col.color)
 			} else {
-				raylib.DrawRectangle(int32(col*40), int32(row*40), 40, 40, raylib.White)
+				raylib.DrawRectangle(int32(j*40), int32(i*40), 40, 40, raylib.White)
 			}
 		}
 	}
