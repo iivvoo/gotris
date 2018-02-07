@@ -126,6 +126,7 @@ type Game struct {
 	framesCounter int
 	fcLastKey     int
 	active        *ActiveBlock
+	next          *Block
 	score         int
 	lines         int
 	full          []int
@@ -336,10 +337,27 @@ func (g *Game) draw() {
 			if col.used {
 				raylib.DrawRectangle(int32(j*40), int32(i*40), 40, 40, col.color)
 			} else {
+
 				raylib.DrawRectangle(int32(j*40), int32(i*40), 40, 40, raylib.White)
 			}
 		}
 	}
+}
+
+func (g *Game) drawNext(nextX int, nextY int) {
+	var next = g.next
+
+	for r, row := range next.cells {
+		for c, cell := range row {
+			if cell == 'X' {
+				raylib.DrawRectangle(int32(nextX+c*30), int32(nextY+r*30), 30, 30, next.color)
+			} else {
+				raylib.DrawRectangle(int32(nextX+c*30), int32(nextY+r*30), 30, 30, raylib.LightGray)
+			}
+
+		}
+	}
+
 }
 
 func main() {
@@ -364,6 +382,7 @@ func main() {
 	ab.random()
 	ab.row = 0
 	ab.col = cols/2 - 1
+	board.next = &blocks[rand.Intn(len(blocks))]
 	board.putBlock(ab)
 	// board.print()
 
@@ -377,14 +396,15 @@ func main() {
 		raylib.DrawText("Score", 420, 500, 40, raylib.Black)
 		raylib.DrawText(strconv.Itoa(board.score), 420, 550, 40, raylib.Black)
 		board.draw()
+		board.drawNext(420, 150)
 		if !gameOver {
 			board.input()
 			if !board.paused {
 				if !board.blockDown() {
-					ab := &ActiveBlock{block: &z}
-					ab.random()
+					ab := &ActiveBlock{block: board.next}
 					ab.row = 0
 					ab.col = cols/2 - 1
+					board.next = &blocks[rand.Intn(len(blocks))]
 					fullLines := board.checkFullRows()
 					board.lines += fullLines
 
