@@ -12,6 +12,7 @@ import (
 /*
  * TODO
  * Restart after finished
+ * After drop (space) next block should be active, currently there's delay + possibility to move
  * Increase linedrop speed when #lines/score increases
  * Projection where block will end when dropped
  * make Row a struct?
@@ -148,10 +149,10 @@ func (g *Game) init(rows int, cols int, fps int, linesPs int, keysPs int) {
 	g.score = 0
 	g.lines = 0
 
-	g.board = make([][]*Cell, rows) // rows + 1?
+	g.board = make([][]*Cell, rows)
 
 	for i := range g.board {
-		g.board[i] = make([]*Cell, cols) // cols + 1?
+		g.board[i] = make([]*Cell, cols)
 		for j := range g.board[i] {
 			g.board[i][j] = &Cell{}
 		}
@@ -197,7 +198,6 @@ func (g *Game) canMoveBlock(dRow int, dCol int, dRot int) bool {
 }
 
 func (g *Game) setBlock(state bool) bool {
-	// TODO: rotate
 	var a = g.active
 	var b = a.block
 	var cRows, cCols = a.getDims(0)
@@ -275,7 +275,6 @@ func (g *Game) clearFullRows() {
 			g.board[0][c] = &Cell{}
 		}
 	}
-	// make sure g.board[0] is entirely cleared
 }
 
 func (g *Game) input() {
@@ -289,7 +288,6 @@ func (g *Game) input() {
 	if g.framesCounter-g.fcLastKey < (g.fps / g.keysPs) {
 		return
 	}
-
 	if raylib.IsKeyDown(raylib.KeyRight) {
 		dCol = 1
 		changed = true
@@ -355,10 +353,8 @@ func (g *Game) drawNext(nextX int, nextY int) {
 			} else {
 				raylib.DrawRectangle(int32(nextX+c*30), int32(nextY+r*30), 30, 30, raylib.LightGray)
 			}
-
 		}
 	}
-
 }
 
 func (g *Game) shiftBlock() *ActiveBlock {
