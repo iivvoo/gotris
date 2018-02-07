@@ -347,7 +347,7 @@ func main() {
 	const linesPs = 2
 	const keysPs = 6
 	const cols = 10
-	const rows = 10
+	const rows = 20
 
 	var gameOver = false
 
@@ -363,7 +363,7 @@ func main() {
 	ab := &ActiveBlock{block: &z}
 	ab.random()
 	ab.row = 0
-	ab.col = 4
+	ab.col = cols/2 - 1
 	board.putBlock(ab)
 	// board.print()
 
@@ -376,15 +376,15 @@ func main() {
 		raylib.DrawText(strconv.Itoa(board.lines), 420, 350, 40, raylib.Black)
 		raylib.DrawText("Score", 420, 500, 40, raylib.Black)
 		raylib.DrawText(strconv.Itoa(board.score), 420, 550, 40, raylib.Black)
+		board.draw()
 		if !gameOver {
-			board.draw()
 			board.input()
 			if !board.paused {
 				if !board.blockDown() {
 					ab := &ActiveBlock{block: &z}
 					ab.random()
 					ab.row = 0
-					ab.col = 5
+					ab.col = cols/2 - 1
 					fullLines := board.checkFullRows()
 					board.lines += fullLines
 
