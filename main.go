@@ -12,12 +12,13 @@ import (
 /*
  * TODO
  * Restart after finished
- * "Animate" clearing of rows
- * Show next block
  * Increase linedrop speed when #lines/score increases
  * Projection where block will end when dropped
  * make Row a struct?
  *  -> keeps track if 'full', etc
+ * "Animate" clearing of rows
+ * "Next block" incorrect at game over (or more specific,
+ *  block that failed to place should be next)
  */
 
 // Block is a possible tetris figure
