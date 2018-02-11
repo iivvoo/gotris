@@ -20,7 +20,8 @@ import (
  * "Animate" clearing of rows
  * "Next block" incorrect at game over (or more specific,
  *  block that failed to place should be next)
- * multi-gui? https://godoc.org/github.com/golang-ui/nuklear/nk
+ *  multi-gui? https://godoc.org/github.com/golang-ui/nuklear/nk
+ * can go-routines/channels be used to implement/abstract the main loop?
  */
 
 // ActiveBlock is the block currently played
@@ -192,13 +193,15 @@ func (g *Game) hideBlock() {
 	g.setBlock(false)
 }
 
-func (g *Game) blockDown() bool {
+func (g *Game) blockDown(immediate bool) bool {
 	// move active block down 1 row every N frames
-	if g.framesCounter%(g.fps/g.linesPs) == 0 {
+	if immediate || g.framesCounter%(g.fps/g.linesPs) == 0 {
 		if g.canMoveBlock(1, 0, 0) {
 			g.hideBlock()
 			g.active.row++
 			g.showBlock()
+			// try to draw a ghost version further down
+
 			return true
 		}
 		return false
@@ -238,18 +241,20 @@ func (g *Game) clearFullRows() {
 	}
 }
 
-func (g *Game) input() {
+func (g *Game) input() bool {
 	// refactor this into handling input and returning action
 	// to be taken, if any?
+	// returns true if action requires immediate update
 	var active = g.active
 	var dCol, dRow, dRot = 0, 0, 0
 	var changed = false
+	var immediate = false
 
 	g.framesCounter++
 
 	// require a specific interval between keypresses
 	if g.framesCounter-g.fcLastKey < (g.fps / g.keysPs) {
-		return
+		return false
 	}
 	if raylib.IsKeyDown(raylib.KeyRight) {
 		dCol = 1
@@ -261,6 +266,7 @@ func (g *Game) input() {
 			dRow++
 		}
 		changed = true
+		immediate = true
 	}
 	if raylib.IsKeyDown(raylib.KeyLeft) {
 		dCol = -1
@@ -288,6 +294,7 @@ func (g *Game) input() {
 		g.showBlock()
 		g.fcLastKey = g.framesCounter
 	}
+	return immediate
 }
 
 func (g *Game) draw() {
@@ -367,9 +374,9 @@ func main() {
 		board.draw()
 		board.drawNext(420, 150)
 		if !gameOver {
-			board.input()
+			immediate := board.input()
 			if !board.paused {
-				if !board.blockDown() {
+				if !board.blockDown(immediate) {
 					ab := board.shiftBlock()
 					fullLines := board.checkFullRows()
 					board.lines += fullLines
