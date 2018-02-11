@@ -12,15 +12,17 @@ import (
 /*
  * TODO
  * Restart after finished
+ * constants for field / background colors
+ * modularize
+ * unit tests
  * Increase linedrop speed when #lines/score increases
- * Projection where block will end when dropped
  * make Row a struct?
  *  -> keeps track if 'full', etc
  * "Animate" clearing of rows
  * "Next block" incorrect at game over (or more specific,
- *  block that failed to place should be next)
+ *    block that failed to place should be next)
  *  multi-gui? https://godoc.org/github.com/golang-ui/nuklear/nk
- * can go-routines/channels be used to implement/abstract the main loop?
+ *  can go-routines/channels be used to implement/abstract the main loop?
  */
 
 var ghostColor = raylib.NewColor(230, 230, 230, 255)
@@ -30,7 +32,7 @@ type ActiveBlock struct {
 	block    *Block
 	row      int
 	col      int
-	rotation int // 1 2 3 4
+	rotation int // 0 1 2 3
 }
 
 func (a *ActiveBlock) getCell(row int, col int, dRot int) bool {
