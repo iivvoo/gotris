@@ -104,14 +104,6 @@ type Cell struct {
 	color raylib.Color
 }
 
-func (c *Cell) print() {
-	if c.used {
-		fmt.Print("X")
-	} else {
-		fmt.Print(" ")
-	}
-}
-
 // Game of cells
 type Game struct {
 	fps           int
@@ -150,15 +142,6 @@ func (g *Game) init(rows int, cols int, fps int, linesPs int, keysPs int) {
 		for j := range g.board[i] {
 			g.board[i][j] = &Cell{}
 		}
-	}
-}
-
-func (g *Game) print() {
-	for i := range g.board {
-		for j := range g.board[i] {
-			g.board[i][j].print()
-		}
-		fmt.Println()
 	}
 }
 
