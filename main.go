@@ -20,6 +20,7 @@ import (
  * "Animate" clearing of rows
  * "Next block" incorrect at game over (or more specific,
  *  block that failed to place should be next)
+ * multi-gui? https://godoc.org/github.com/golang-ui/nuklear/nk
  */
 
 // ActiveBlock is the block currently played
@@ -238,6 +239,8 @@ func (g *Game) clearFullRows() {
 }
 
 func (g *Game) input() {
+	// refactor this into handling input and returning action
+	// to be taken, if any?
 	var active = g.active
 	var dCol, dRow, dRot = 0, 0, 0
 	var changed = false
