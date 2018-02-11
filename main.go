@@ -23,6 +23,8 @@ import (
  * can go-routines/channels be used to implement/abstract the main loop?
  */
 
+var ghostColor = raylib.NewColor(230, 230, 230, 255)
+
 // ActiveBlock is the block currently played
 type ActiveBlock struct {
 	block    *Block
@@ -90,6 +92,22 @@ func (a *ActiveBlock) setBlock(g *Game, state bool) bool {
 	return true
 }
 
+func (a *ActiveBlock) drawGhost(g *Game, dRow int) {
+	/*
+	 * The ghost block shows where the active drop will end up when dropped
+	 */
+	var cRows, cCols = a.getDims(0)
+
+	for r := 0; r < cRows; r++ {
+		for c := 0; c < cCols; c++ {
+			if a.getCell(r, c, 0) {
+				g.board[a.row+r+dRow][a.col+c].ghost = true
+			}
+		}
+	}
+
+}
+
 func (a *ActiveBlock) showBlock(g *Game) bool {
 	return a.setBlock(g, true)
 }
@@ -101,6 +119,7 @@ func (a *ActiveBlock) hideBlock(g *Game) {
 // Cell in the board
 type Cell struct {
 	used  bool
+	ghost bool
 	color raylib.Color
 }
 
@@ -174,14 +193,27 @@ func (g *Game) canMoveBlock(dRow int, dCol int, dRot int) bool {
 	return true
 }
 
+func (g *Game) clearGhost() {
+	for _, row := range g.board {
+		for _, cell := range row {
+			cell.ghost = false
+		}
+	}
+}
+
 func (g *Game) blockDown(immediate bool) bool {
 	// move active block down 1 row every N frames
 	if immediate || g.framesCounter%(g.fps/g.linesPs) == 0 {
 		if g.canMoveBlock(1, 0, 0) {
 			g.active.hideBlock(g)
 			g.active.row++
+			dGhostRow := 0
+			for g.canMoveBlock(dGhostRow+1, 0, 0) {
+				dGhostRow++
+			}
+			g.clearGhost()
+			g.active.drawGhost(g, dGhostRow)
 			g.active.showBlock(g)
-			// try to draw a ghost version further down
 
 			return true
 		}
@@ -283,12 +315,13 @@ func (g *Game) draw() {
 	// Draw a single block. Needs color
 	// defer fmt.Println("Block drawn")
 
-	for i, row := range g.board { // row := 0; row < len(g.board); row++ {
-		for j, col := range row { //
+	for i, row := range g.board {
+		for j, col := range row {
 			if col.used {
 				raylib.DrawRectangle(int32(j*40), int32(i*40), 40, 40, col.color)
+			} else if col.ghost {
+				raylib.DrawRectangle(int32(j*40), int32(i*40), 40, 40, ghostColor)
 			} else {
-
 				raylib.DrawRectangle(int32(j*40), int32(i*40), 40, 40, raylib.White)
 			}
 		}

@@ -26,7 +26,7 @@ var rightL = Block{cells: []string{
 var z = Block{cells: []string{
 	"XX ",
 	" XX",
-}, color: raylib.Yellow}
+}, color: raylib.DarkBlue}
 var reverseZ = Block{cells: []string{
 	" XX",
 	"XX ",
