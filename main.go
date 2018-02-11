@@ -277,6 +277,7 @@ func (g *Game) input() bool {
 	if raylib.IsKeyDown(raylib.KeyDown) {
 		dRow = 1
 		changed = true
+		immediate = true
 	}
 	if raylib.IsKeyDown(raylib.KeyP) {
 		g.paused = !g.paused
