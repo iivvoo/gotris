@@ -12,7 +12,6 @@ import (
 /*
  * TODO
  * Restart after finished
- * After drop (space) next block should be active, currently there's delay + possibility to move
  * Increase linedrop speed when #lines/score increases
  * Projection where block will end when dropped
  * make Row a struct?
@@ -64,6 +63,31 @@ func (a *ActiveBlock) getDims(dRot int) (int, int) {
 		return len(a.block.cells), len(a.block.cells[0])
 	}
 	return len(a.block.cells[0]), len(a.block.cells)
+}
+
+func (a *ActiveBlock) setBlock(g *Game, state bool) bool {
+	var b = a.block
+	var cRows, cCols = a.getDims(0)
+
+	if state {
+		for r := 0; r < cRows; r++ {
+			for c := 0; c < cCols; c++ {
+				if a.getCell(r, c, 0) && g.board[a.row+r][a.col+c].used {
+					return false
+				}
+			}
+		}
+	}
+	for r := 0; r < cRows; r++ {
+		for c := 0; c < cCols; c++ {
+			if a.getCell(r, c, 0) {
+				// only if not already set, else block cannot be placed
+				g.board[a.row+r][a.col+c].used = state
+				g.board[a.row+r][a.col+c].color = b.color
+			}
+		}
+	}
+	return true
 }
 
 // Cell in the board
@@ -140,8 +164,8 @@ func (g *Game) canMoveBlock(dRow int, dCol int, dRot int) bool {
 
 	var cRows, cCols = a.getDims(dRot)
 
-	defer g.setBlock(true)
-	g.setBlock(false)
+	defer a.setBlock(g, true) // show
+	a.setBlock(g, false)      // hide
 
 	for r := 0; r < cRows; r++ {
 		for c := 0; c < cCols; c++ {
@@ -159,38 +183,12 @@ func (g *Game) canMoveBlock(dRow int, dCol int, dRot int) bool {
 	return true
 }
 
-func (g *Game) setBlock(state bool) bool {
-	var a = g.active
-	var b = a.block
-	var cRows, cCols = a.getDims(0)
-
-	if state {
-		for r := 0; r < cRows; r++ {
-			for c := 0; c < cCols; c++ {
-				if a.getCell(r, c, 0) && g.board[a.row+r][a.col+c].used {
-					return false
-				}
-			}
-		}
-	}
-	for r := 0; r < cRows; r++ {
-		for c := 0; c < cCols; c++ {
-			if a.getCell(r, c, 0) {
-				// only if not already set, else block cannot be placed
-				g.board[a.row+r][a.col+c].used = state
-				g.board[a.row+r][a.col+c].color = b.color
-			}
-		}
-	}
-	return true
-}
-
 func (g *Game) showBlock() bool {
-	return g.setBlock(true)
+	return g.active.setBlock(g, true)
 }
 
 func (g *Game) hideBlock() {
-	g.setBlock(false)
+	g.active.setBlock(g, false)
 }
 
 func (g *Game) blockDown(immediate bool) bool {
