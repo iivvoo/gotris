@@ -90,6 +90,14 @@ func (a *ActiveBlock) setBlock(g *Game, state bool) bool {
 	return true
 }
 
+func (a *ActiveBlock) showBlock(g *Game) bool {
+	return a.setBlock(g, true)
+}
+
+func (a *ActiveBlock) hideBlock(g *Game) {
+	a.setBlock(g, false)
+}
+
 // Cell in the board
 type Cell struct {
 	used  bool
@@ -156,7 +164,7 @@ func (g *Game) print() {
 
 func (g *Game) putBlock(block *ActiveBlock) bool {
 	g.active = block
-	return g.showBlock()
+	return g.active.showBlock(g)
 }
 
 func (g *Game) canMoveBlock(dRow int, dCol int, dRot int) bool {
@@ -183,21 +191,13 @@ func (g *Game) canMoveBlock(dRow int, dCol int, dRot int) bool {
 	return true
 }
 
-func (g *Game) showBlock() bool {
-	return g.active.setBlock(g, true)
-}
-
-func (g *Game) hideBlock() {
-	g.active.setBlock(g, false)
-}
-
 func (g *Game) blockDown(immediate bool) bool {
 	// move active block down 1 row every N frames
 	if immediate || g.framesCounter%(g.fps/g.linesPs) == 0 {
 		if g.canMoveBlock(1, 0, 0) {
-			g.hideBlock()
+			g.active.hideBlock(g)
 			g.active.row++
-			g.showBlock()
+			g.active.showBlock(g)
 			// try to draw a ghost version further down
 
 			return true
@@ -285,11 +285,11 @@ func (g *Game) input() bool {
 	if !g.paused && changed && g.canMoveBlock(dRow, dCol, dRot) {
 		// dropping means adding rows until we no longer can
 
-		g.hideBlock()
+		g.active.hideBlock(g)
 		active.row += dRow
 		active.col += dCol
 		active.rotation += dRot
-		g.showBlock()
+		g.active.showBlock(g)
 		g.fcLastKey = g.framesCounter
 	}
 	return immediate
