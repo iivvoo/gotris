@@ -12,6 +12,7 @@ import (
 /*
  * TODO
  * Restart after finished
+ * keypresses should be immediate but after a press there should be a pause
  * constants for field / background colors
  * modularize
  * unit tests
@@ -107,7 +108,6 @@ func (a *ActiveBlock) drawGhost(g *Game, dRow int) {
 			}
 		}
 	}
-
 }
 
 func (a *ActiveBlock) showBlock(g *Game) bool {
@@ -377,7 +377,6 @@ func main() {
 
 	ab := board.shiftBlock()
 	board.putBlock(ab)
-	// board.print()
 
 	for !raylib.WindowShouldClose() {
 		raylib.BeginDrawing()
